@@ -1,4 +1,5 @@
 import 'package:bookit/cloud_firestore/all_facilities_ref.dart';
+import 'package:bookit/model/service_model.dart';
 import 'package:bookit/state/state_management.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -29,22 +30,54 @@ class StaffHome extends ConsumerWidget {
               child: Text('Не могу загрузить спиок категорий('),
             );
           } else {
-            return GridView.builder(
+            return ListView.builder(
               itemCount: categories.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+              //gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1),
               itemBuilder: (context, index) {
                 return GestureDetector(
                   onTap: () => context.read(selectedCategory).state = categories[index],
                   child: Padding(
                     padding: EdgeInsets.all(8),
-                    child: Card(
-                      shape: context.read(selectedCategory).state.name == categories[index].name
-                          ? RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.green, width: 4),
-                              borderRadius: BorderRadius.circular(5))
-                          : null,
-                      child: Center(
-                        child: Text('${categories[index].name}'),
+                    child: Container(
+                      height: 100.0,
+                      child: Card(
+                        elevation: 4.0,
+                        shape: context.read(selectedCategory).state.name == categories[index].name
+                            ? RoundedRectangleBorder(
+                                side: BorderSide(color: Colors.orange, width: 4),
+                                borderRadius: BorderRadius.circular(5))
+                            : null,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            categories[index].name == 'Боулинг'
+                                ? Image.asset(
+                                    'assets/images/bowling.png',
+                                    color: Colors.black,
+                                  )
+                                : categories[index].name == 'Бильярд'
+                                    ? Image.asset(
+                                        'assets/images/billiard.png',
+                                        color: Colors.black,
+                                      )
+                                    : categories[index].name == 'Караоке'
+                                        ? Image.asset(
+                                            'assets/images/karaoke.png',
+                                            color: Colors.black,
+                                          )
+                                        : categories[index].name == 'Анти-кафе'
+                                            ? Image.asset(
+                                                'assets/images/anti-cafe.png',
+                                                color: Colors.black,
+                                              )
+                                            : Image.asset(''),
+                            SizedBox(
+                              width: 20.0,
+                            ),
+                            Text('${categories[index].name}',
+                                style: GoogleFonts.openSans(fontSize: 24.0)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -99,6 +132,56 @@ class StaffHome extends ConsumerWidget {
                       subtitle: Text(
                         '${facilities[index].address}',
                         style: GoogleFonts.robotoMono(fontStyle: FontStyle.italic),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }
+        }
+      },
+    );
+  }
+
+  displayService(FacilityModel facilityModel) {
+    return FutureBuilder(
+      future: getServicesByFacilities(facilityModel),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        } else {
+          var services = snapshot.data as List<ServiceModel>;
+          if (services == null || services.length == 0) {
+            return Center(
+              child: Text('Не могу загрузить спиок услуг('),
+            );
+          } else if (FirebaseAuth.instance.currentUser!.uid !=
+              context.read(selectedFacility).state.docId) {
+            return Center(
+              child: Text('Вы не относитесь к этому заведению!'),
+            );
+          } else {
+            return ListView.builder(
+              itemCount: services.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => context.read(selectedService).state = services[index],
+                  child: Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.sell,
+                        color: Colors.black,
+                      ),
+                      trailing: context.read(selectedService).state.docId == services[index].docId
+                          ? Icon(Icons.check)
+                          : null,
+                      title: Text(
+                        '${services[index].name} \n'
+                        'Цена: ${services[index].price}',
+                        style: GoogleFonts.robotoMono(),
                       ),
                     ),
                   ),
@@ -271,16 +354,18 @@ class StaffHome extends ConsumerWidget {
     return SafeArea(
       child: Scaffold(
           resizeToAvoidBottomInset: true,
-          backgroundColor: Color(0xFFDFDFDF),
+          backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(currentStaffStep == 1
                 ? 'Выберите категорию'
                 : currentStaffStep == 2
                     ? 'Выберите заведение'
                     : currentStaffStep == 3
-                        ? 'Ваши заказы'
-                        : 'Админ панель'),
-            backgroundColor: Color(0xFF383838),
+                        ? 'Выберите сервис'
+                        : currentStaffStep == 4
+                            ? 'Ваши заказы'
+                            : 'Админ панель'),
+            backgroundColor: Colors.orange,
             actions: [
               IconButton(
                   onPressed: () {
@@ -301,8 +386,10 @@ class StaffHome extends ConsumerWidget {
                     : currentStaffStep == 2
                         ? displayFacility(categoryWatch.name)
                         : currentStaffStep == 3
-                            ? displayBooking(context)
-                            : Container(),
+                            ? displayService(facilityWatch)
+                            : currentStaffStep == 4
+                                ? displayBooking(context)
+                                : Container(),
                 flex: 10,
               ),
               Expanded(
@@ -330,7 +417,9 @@ class StaffHome extends ConsumerWidget {
                                         context.read(selectedCategory).state.name == '') ||
                                     (currentStaffStep == 2 &&
                                         context.read(selectedFacility).state.docId == '') ||
-                                    currentStaffStep == 3
+                                    (currentStaffStep == 3 &&
+                                        context.read(selectedService).state.docId == '') ||
+                                    currentStaffStep == 4
                                 ? null
                                 : () => context.read(staffStep).state++,
                             child: Text('Далее'),

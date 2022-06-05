@@ -14,7 +14,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:im_stepper/stepper.dart';
@@ -50,28 +49,31 @@ class BookingScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () => context.read(selectedCategory).state = categories[index],
-                    child: Card(
-                      child: ListTile(
-                        leading: categories[index].name == 'Бильярд'
-                            ? Image.asset(
-                                'assets/images/billiard.png',
-                                color: Colors.orange,
-                              )
-                            : categories[index].name == 'Боулинг'
-                                ? Image.asset('assets/images/bowling.png', color: Colors.orange)
-                                : categories[index].name == 'Караоке'
-                                    ? Image.asset('assets/images/karaoke.png', color: Colors.orange)
-                                    : categories[index].name == 'Анти-кафе'
-                                        ? Image.asset('assets/images/anti-cafe.png',
-                                            color: Colors.orange)
-                                        : null,
-                        trailing:
-                            context.read(selectedCategory).state.name == categories[index].name
-                                ? Icon(Icons.check)
-                                : null,
-                        title: Text(
-                          '${categories[index].name}',
-                          style: GoogleFonts.robotoMono(),
+                    child: Container(
+                      child: Card(
+                        child: ListTile(
+                          leading: categories[index].name == 'Бильярд'
+                              ? Image.asset(
+                                  'assets/images/billiard.png',
+                                  color: Colors.orange,
+                                )
+                              : categories[index].name == 'Боулинг'
+                                  ? Image.asset('assets/images/bowling.png', color: Colors.orange)
+                                  : categories[index].name == 'Караоке'
+                                      ? Image.asset('assets/images/karaoke.png',
+                                          color: Colors.orange)
+                                      : categories[index].name == 'Анти-кафе'
+                                          ? Image.asset('assets/images/anti-cafe.png',
+                                              color: Colors.orange)
+                                          : null,
+                          trailing:
+                              context.read(selectedCategory).state.name == categories[index].name
+                                  ? Icon(Icons.check)
+                                  : null,
+                          title: Text(
+                            '${categories[index].name}',
+                            style: GoogleFonts.robotoMono(),
+                          ),
                         ),
                       ),
                     ),
@@ -169,19 +171,6 @@ class BookingScreen extends ConsumerWidget {
                         '${services[index].name} \n'
                         'Цена: ${services[index].price}',
                         style: GoogleFonts.robotoMono(),
-                      ),
-                      subtitle: RatingBar.builder(
-                        itemSize: 16,
-                        allowHalfRating: true,
-                        initialRating: services[index].rating,
-                        direction: Axis.horizontal,
-                        itemCount: 5,
-                        itemBuilder: (context, _) => Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                        ),
-                        itemPadding: EdgeInsets.all(4),
-                        onRatingUpdate: (val) {},
                       ),
                     ),
                   ),
@@ -438,7 +427,7 @@ class BookingScreen extends ConsumerWidget {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(24),
-            child: Image.asset('assets/images/logo.png'),
+            child: Image.asset('assets/images/menuLogo.png'),
           ),
         ),
         Expanded(
@@ -595,7 +584,7 @@ class BookingScreen extends ConsumerWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: step == 1 ? null : () => context.read(currentStep).state--,
-                          child: Text('Назад'),
+                          child: Text('Назад', style: TextStyle(color: Colors.white)),
                         ),
                       ),
                       SizedBox(
@@ -612,7 +601,10 @@ class BookingScreen extends ConsumerWidget {
                               : step == 5
                                   ? null
                                   : () => context.read(currentStep).state++,
-                          child: Text('Далее'),
+                          child: Text(
+                            'Далее',
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                       ),
                     ],

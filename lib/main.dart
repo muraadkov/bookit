@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
         }
       },
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.orange,
       ),
       home: MyHomePage(),
     );
@@ -122,9 +122,11 @@ class MyHomePage extends StatefulWidget {
 
               context.read(forceReload).state = true;
               if (snapshotUser.exists) {
+                print(FirebaseAuth.instance.currentUser!.phoneNumber);
                 // Если пользователь в системе -> переход на главную
                 Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false,
                     arguments: snapshotUser.get('isStaff'));
+
                 //Если пользователь не в системе
               } else {
                 var nameController = TextEditingController();
@@ -209,7 +211,7 @@ class MyHomePageState extends State<MyHomePage> {
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/images/bookit_bg.jpg'),
+              image: AssetImage('assets/images/mainbg.jpg'),
               fit: BoxFit.cover,
             ),
           ),
@@ -234,7 +236,10 @@ class MyHomePageState extends State<MyHomePage> {
                             return ElevatedButton.icon(
                               onPressed: () => widget.processLogin(context),
                               icon: Icon(Icons.phone),
-                              label: Text('Зарегестрируйтесь через телефон'),
+                              label: Text(
+                                'Зарегистрируйтесь через телефон',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all(Colors.black)),
                             );

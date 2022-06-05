@@ -109,6 +109,8 @@ Future<bool> checkThisFacility(BuildContext context) async {
       .collection('Branch')
       .doc(FirebaseAuth.instance.currentUser!.uid)
       .get();
+  print(FirebaseAuth.instance.currentUser!.uid);
+
   return facilitySnapshot.exists;
 }
 
@@ -119,7 +121,7 @@ Future<List<int>> getBookingSlot(BuildContext context, String date) async {
       .collection('Branch')
       .doc('${context.read(selectedFacility).state.docId}')
       .collection('Service')
-      .doc(FirebaseAuth.instance.currentUser!.uid);
+      .doc('${context.read(selectedService).state.docId}');
   List<int> result = new List<int>.empty(growable: true);
   var bookingRef = facilityDocument.collection(date);
   QuerySnapshot snapshot = await bookingRef.get();
@@ -136,7 +138,7 @@ Future<BookingModel> getDetailOfBooking(BuildContext context, int timeSlot) asyn
       .collection('Branch')
       .doc(context.read(selectedFacility).state.docId)
       .collection('Service')
-      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .doc('${context.read(selectedService).state.docId}')
       .collection(DateFormat('dd_MM_yyyy').format(context.read(selectedDate).state));
   DocumentSnapshot snapshot = await userRef.doc(timeSlot.toString()).get();
   if (snapshot.exists) {

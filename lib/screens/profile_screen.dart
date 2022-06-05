@@ -85,9 +85,13 @@ class ProfileScreen extends ConsumerWidget {
       );
 
   Widget buildProfileImage() => CircleAvatar(
-        backgroundColor: Colors.white,
+        foregroundColor: Colors.black26,
+        backgroundColor: Colors.orange,
         radius: 72,
-        backgroundImage: AssetImage('assets/images/person.png'),
+        child: Image.asset(
+          'assets/images/person.png',
+          color: Colors.white,
+        ),
       );
 
   Widget buildTop(BuildContext context) {
@@ -97,11 +101,8 @@ class ProfileScreen extends ConsumerWidget {
       children: [
         Container(
             margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.height / 8),
-            child: buildCoverImage()),
-        Positioned(
-          top: 280 - 72 / 2,
-          child: buildProfileImage(),
-        )
+            child: Container()),
+        Padding(padding: EdgeInsets.only(top: 50.0), child: buildProfileImage())
       ],
     );
   }
@@ -121,8 +122,8 @@ class ProfileScreen extends ConsumerWidget {
               );
             } else {
               var userModel = snapshot.data as UserModel;
-              return ListView(
-                padding: EdgeInsets.zero,
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   buildTop(context),
                   Column(
@@ -132,7 +133,8 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       Text(
                         userModel.name,
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black26),
                       ),
                       const SizedBox(
                         height: 8,
@@ -143,15 +145,13 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: 150,
-                  ),
                   Padding(
-                    padding: EdgeInsets.all(10.0),
+                    padding: EdgeInsets.all(100.0),
                     child: Container(
                       height: 50.0,
                       decoration: BoxDecoration(
-                          color: Colors.red, borderRadius: BorderRadius.all(Radius.circular(10.0))),
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.all(Radius.circular(10.0))),
                       child: InkWell(
                         onTap: () {
                           FirebaseAuth.instance.signOut();
@@ -162,7 +162,8 @@ class ProfileScreen extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             'Выход',
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18.0),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 24.0, color: Colors.white),
                           ),
                         ),
                       ),
@@ -196,7 +197,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.book_online),
-            label: 'Бронирование',
+            label: 'Бронь',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
