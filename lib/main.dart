@@ -199,7 +199,11 @@ class MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    initFirebaseMessagingHandler();
+    FirebaseMessaging.instance
+        .subscribeToTopic(FirebaseAuth.instance.currentUser!.uid)
+        .then((value) => print('Success!'));
+
+    initFirebaseMessagingHandler(channel!);
   }
 
   @override

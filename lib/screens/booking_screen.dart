@@ -503,7 +503,7 @@ class BookingScreen extends ConsumerWidget {
                         Text(
                           '${context.read(selectedFacility).state.address.toUpperCase()}',
                           style: GoogleFonts.robotoMono(),
-                        )
+                        ),
                       ],
                     ),
                     SizedBox(

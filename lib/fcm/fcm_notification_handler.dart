@@ -2,7 +2,7 @@ import 'package:bookit/main.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void initFirebaseMessagingHandler() {
+void initFirebaseMessagingHandler(AndroidNotificationChannel? channel) {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
@@ -12,8 +12,8 @@ void initFirebaseMessagingHandler() {
           notification.title,
           notification.body,
           NotificationDetails(
-              android: AndroidNotificationDetails(channel!.id, channel!.name,
-                  channelDescription: channel!.description, icon: 'launch_background')));
+              android: AndroidNotificationDetails(channel!.id, channel.name,
+                  icon: 'launch_background')));
     }
   });
 }
