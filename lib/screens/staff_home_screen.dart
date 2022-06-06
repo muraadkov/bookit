@@ -114,7 +114,7 @@ class StaffHome extends ConsumerWidget {
                     child: ListTile(
                       shape: context.read(selectedFacility).state.name == facilities[index].name
                           ? RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.green, width: 4),
+                              side: BorderSide(color: Colors.orange, width: 4),
                               borderRadius: BorderRadius.circular(5))
                           : null,
                       leading: Icon(

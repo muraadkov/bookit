@@ -26,7 +26,7 @@ class DoneService extends ConsumerWidget {
         .doc('${serviceBook.customerPhone}')
         .collection('Booking_${serviceBook.customerId}')
         .doc(
-            '${serviceBook.serviceId}_${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(serviceBook.timeStamp))}');
+            '${serviceBook.serviceId}_${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(serviceBook.timeStamp))}_${serviceBook.time.substring(0, serviceBook.time.indexOf('-') - 1)}');
 
     Map<String, dynamic> updateDone = new Map();
     updateDone['done'] = true;
@@ -60,7 +60,7 @@ class DoneService extends ConsumerWidget {
           backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text('Выполненые заказы'),
-            backgroundColor: Color(0xFF383838),
+            backgroundColor: Colors.orange,
           ),
           body: Column(
             children: [
