@@ -88,9 +88,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
   @override
   Widget build(BuildContext context) {
+    int _selectedIndex = 0;
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -755,7 +755,15 @@ class _HomePageState extends State<HomePage> {
           unselectedItemColor: Colors.black,
           selectedItemColor: Colors.orange,
           currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
+          onTap: (int index) {
+            if (index == 1) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => UserHistory()));
+            } else if (index == 2) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => BookingScreen()));
+            } else if (index == 3) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+            }
+          },
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.menu),
@@ -777,18 +785,5 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 1) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => UserHistory()));
-      } else if (index == 2) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => BookingScreen()));
-      } else if (index == 3) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
-      }
-    });
   }
 }
