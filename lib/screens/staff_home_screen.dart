@@ -314,7 +314,7 @@ class StaffHome extends ConsumerWidget {
                                 children: [
                                   Text('${TIME_SLOT.elementAt(index)}'),
                                   Text(listTimeSlot.contains(index)
-                                      ? 'Ваша бронь'
+                                      ? 'Бронь'
                                       : (maxTimeSlot > index)
                                           ? 'Недоступно'
                                           : 'Доступно'),
