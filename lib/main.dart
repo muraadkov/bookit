@@ -81,11 +81,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  GlobalKey<ScaffoldState> scaffoldState = new GlobalKey();
+class MyHomePage extends ConsumerStatefulWidget {
+  GlobalKey<ScaffoldState> scaffoldState = GlobalKey();
 
   // Логин пользователя
-  processLogin(BuildContext context) {
+  processLogin(BuildContext context, WidgetRef ref) {
     var user = FirebaseAuth.instance.currentUser;
 
     // Если пользователь не зарегистрирован
@@ -96,8 +96,8 @@ class MyHomePage extends StatefulWidget {
             tosUrl: 'https://google.com', privacyPolicyUrl: 'https://google.com'),
         androidOption: AndroidOption(enableSmartLock: false, showLogo: true, overrideTheme: true),
       ).then((value) async {
-        context.read(userLogged).state = FirebaseAuth.instance.currentUser;
-        await checkLoginState(context, true, scaffoldState);
+        ref.read(userLogged.notifier).state = FirebaseAuth.instance.currentUser;
+        await checkLoginState(context, true, scaffoldState, ref);
       }).catchError((e) {
         ScaffoldMessenger.of(scaffoldState.currentContext!)
             .showSnackBar(SnackBar(content: Text('${e.toString()}')));
@@ -107,25 +107,24 @@ class MyHomePage extends StatefulWidget {
   }
 
   // Проверка состояние регистрации пользователя
-  Future<LOGIN_STATE> checkLoginState(
-      BuildContext context, bool fromLogin, GlobalKey<ScaffoldState> scaffoldState) async {
-    if (!context.read(forceReload).state) {
+  Future<LOGIN_STATE> checkLoginState(BuildContext context, bool fromLogin,
+      GlobalKey<ScaffoldState> scaffoldState, WidgetRef ref) async {
+    if (!ref.read(forceReload)) {
       await Future.delayed(Duration(seconds: fromLogin == true ? 0 : 3)).then((value) => {
             FirebaseAuth.instance.currentUser!.getIdToken().then((token) async {
-              print('$token');
-              context.read(userToken).state = token;
+              ref.read(userToken.notifier).state = token;
 
               // Проверка если пользователь есть в система
               CollectionReference userRef = FirebaseFirestore.instance.collection('User');
               DocumentSnapshot snapshotUser =
                   await userRef.doc(FirebaseAuth.instance.currentUser!.phoneNumber).get();
 
-              context.read(forceReload).state = true;
+              ref.read(forceReload.notifier).state = true;
               if (snapshotUser.exists) {
                 print(FirebaseAuth.instance.currentUser!.phoneNumber);
                 // Если пользователь в системе -> переход на главную
                 Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false,
-                    arguments: snapshotUser.get('isStaff'));
+                    arguments: true);
 
                 //Если пользователь не в системе
               } else {
@@ -191,10 +190,11 @@ class MyHomePage extends StatefulWidget {
     return FirebaseAuth.instance.currentUser != null ? LOGIN_STATE.LOGGED : LOGIN_STATE.NOT_LOGIN;
   }
 
-  MyHomePageState createState() => MyHomePageState();
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => MyHomePageState();
 }
 
-class MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   void initState() {
     super.initState();
@@ -214,47 +214,49 @@ class MyHomePageState extends State<MyHomePage> {
     return SafeArea(
       child: Scaffold(
         key: widget.scaffoldState,
-        body: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/mainbg.jpg'),
-              fit: BoxFit.cover,
+        body: Consumer(builder: (context, ref, child) {
+          return Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/mainbg.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Container(
-                  padding: const EdgeInsets.all(16),
-                  width: MediaQuery.of(context).size.width,
-                  child: FutureBuilder(
-                      future: widget.checkLoginState(context, false, widget.scaffoldState),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else {
-                          var userState = snapshot.data as LOGIN_STATE?;
-                          if (userState == LOGIN_STATE.LOGGED) {
-                            return Container();
-                          } else {
-                            return ElevatedButton.icon(
-                              onPressed: () => widget.processLogin(context),
-                              icon: Icon(Icons.phone),
-                              label: Text(
-                                'Зарегистрируйтесь через телефон',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all(Colors.black)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                    padding: const EdgeInsets.all(16),
+                    width: MediaQuery.of(context).size.width,
+                    child: FutureBuilder(
+                        future: widget.checkLoginState(context, false, widget.scaffoldState, ref),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(
+                              child: CircularProgressIndicator(),
                             );
+                          } else {
+                            var userState = snapshot.data as LOGIN_STATE?;
+                            if (userState == LOGIN_STATE.LOGGED) {
+                              return Container();
+                            } else {
+                              return ElevatedButton.icon(
+                                onPressed: () => widget.processLogin(context, ref),
+                                icon: Icon(Icons.phone),
+                                label: Text(
+                                  'Зарегистрируйтесь через телефон',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(Colors.black)),
+                              );
+                            }
                           }
-                        }
-                      }))
-            ],
-          ),
-        ),
+                        }))
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

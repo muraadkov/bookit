@@ -6,14 +6,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-Future<UserModel> getUserProfiles(BuildContext context, String phone) async {
+Future<UserModel> getUserProfiles(BuildContext context, String phone, WidgetRef ref) async {
   CollectionReference userRef = FirebaseFirestore.instance.collection('User');
   DocumentSnapshot snapshot = await userRef.doc(phone).get();
 
   if (snapshot.exists) {
     final data = snapshot.data() as Map<String, dynamic>;
     var userModel = UserModel.fromJson(data);
-    context.read(userInformation).state = userModel;
+    ref.read(userInformation.notifier).state = userModel;
     return userModel;
   } else {
     return UserModel(name: '', email: '');

@@ -3,9 +3,7 @@ import 'package:bookit/screens/booking_screen.dart';
 import 'package:bookit/screens/home_screen.dart';
 import 'package:bookit/screens/profile_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +16,7 @@ import '../utils/utils.dart';
 class UserHistory extends ConsumerWidget {
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
-  void cancelBooking(BuildContext context, BookingModel bookingModel) {
+  void cancelBooking(BuildContext context, BookingModel bookingModel, WidgetRef ref) {
     //AllFacilities/Бильярд/Branch/5GmHdXmUDZro22lh7B5q/Service/G6Iu9VryvNmTRyglcv3v/16_05_2022/13
     var batch = FirebaseFirestore.instance.batch();
     var facilityBooking = FirebaseFirestore.instance
@@ -38,11 +36,11 @@ class UserHistory extends ConsumerWidget {
     batch.delete(facilityBooking);
 
     batch.commit().then((value) {
-      context.read(deleteFlagRefresh).state = !context.read(deleteFlagRefresh).state;
+      ref.read(deleteFlagRefresh.notifier).state = !ref.read(deleteFlagRefresh);
     });
   }
 
-  displayUserHistory() {
+  displayUserHistory(WidgetRef ref) {
     return FutureBuilder(
       future: getUserHistory(),
       builder: (context, snapshot) {
@@ -163,7 +161,7 @@ class UserHistory extends ConsumerWidget {
                                                 ),
                                                 onPressed: () {
                                                   Navigator.of(context).pop();
-                                                  cancelBooking(context, userBookings[index]);
+                                                  cancelBooking(context, userBookings[index], ref);
                                                 },
                                                 color: Colors.white,
                                               ),
@@ -218,8 +216,8 @@ class UserHistory extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, watch) {
-    var watchRefresh = watch(deleteFlagRefresh).state;
+  Widget build(BuildContext context, WidgetRef ref) {
+    var watchRefresh = ref.watch(deleteFlagRefresh);
     int _selectedIndex = 1;
     return SafeArea(
       child: Scaffold(
@@ -228,7 +226,7 @@ class UserHistory extends ConsumerWidget {
         backgroundColor: Colors.white,
         body: Padding(
           padding: EdgeInsets.all(12),
-          child: displayUserHistory(),
+          child: displayUserHistory(ref),
         ),
         bottomNavigationBar: BottomNavigationBar(
           unselectedItemColor: Colors.black,

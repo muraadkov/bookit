@@ -14,8 +14,8 @@ Future<bool> sendNotification(NotificationPayloadModel notificationPayloadModel)
             Headers.contentTypeHeader: 'application/json',
             'Authorization': 'key=$key'
           },
-          sendTimeout: 30000,
-          receiveTimeout: 30000,
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
           followRedirects: false,
           validateStatus: (status) => status! < 500),
       data: dataSubmit);

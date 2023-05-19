@@ -2,9 +2,7 @@ import 'package:bookit/cloud_firestore/all_facilities_ref.dart';
 import 'package:bookit/model/service_model.dart';
 import 'package:bookit/state/state_management.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,7 +13,7 @@ import '../model/facility_model.dart';
 import '../utils/utils.dart';
 
 class StaffHome extends ConsumerWidget {
-  displayCategory() {
+  displayCategory(WidgetRef ref) {
     return FutureBuilder(
       future: getCategories(),
       builder: (context, snapshot) {
@@ -35,14 +33,14 @@ class StaffHome extends ConsumerWidget {
               //gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 1),
               itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () => context.read(selectedCategory).state = categories[index],
+                  onTap: () => ref.read(selectedCategory.notifier).state = categories[index],
                   child: Padding(
                     padding: EdgeInsets.all(8),
                     child: Container(
                       height: 100.0,
                       child: Card(
                         elevation: 4.0,
-                        shape: context.read(selectedCategory).state.name == categories[index].name
+                        shape: ref.read(selectedCategory).name == categories[index].name
                             ? RoundedRectangleBorder(
                                 side: BorderSide(color: Colors.orange, width: 4),
                                 borderRadius: BorderRadius.circular(5))
@@ -90,7 +88,7 @@ class StaffHome extends ConsumerWidget {
     );
   }
 
-  displayFacility(String categoryName) {
+  displayFacility(String categoryName, WidgetRef ref) {
     return FutureBuilder(
       future: getFacilitiesByCategory(categoryName),
       builder: (context, snapshot) {
@@ -109,10 +107,10 @@ class StaffHome extends ConsumerWidget {
               itemCount: facilities.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () => context.read(selectedFacility).state = facilities[index],
+                  onTap: () => ref.read(selectedFacility.notifier).state = facilities[index],
                   child: Card(
                     child: ListTile(
-                      shape: context.read(selectedFacility).state.name == facilities[index].name
+                      shape: ref.read(selectedFacility).name == facilities[index].name
                           ? RoundedRectangleBorder(
                               side: BorderSide(color: Colors.orange, width: 4),
                               borderRadius: BorderRadius.circular(5))
@@ -121,10 +119,9 @@ class StaffHome extends ConsumerWidget {
                         Icons.home_outlined,
                         color: Colors.black,
                       ),
-                      trailing:
-                          context.read(selectedFacility).state.docId == facilities[index].docId
-                              ? Icon(Icons.check)
-                              : null,
+                      trailing: ref.read(selectedFacility).docId == facilities[index].docId
+                          ? Icon(Icons.check)
+                          : null,
                       title: Text(
                         '${facilities[index].name}',
                         style: GoogleFonts.robotoMono(),
@@ -144,7 +141,7 @@ class StaffHome extends ConsumerWidget {
     );
   }
 
-  displayService(FacilityModel facilityModel) {
+  displayService(FacilityModel facilityModel, WidgetRef ref) {
     return FutureBuilder(
       future: getServicesByFacilities(facilityModel),
       builder: (context, snapshot) {
@@ -158,8 +155,7 @@ class StaffHome extends ConsumerWidget {
             return Center(
               child: Text('Не могу загрузить спиок услуг('),
             );
-          } else if (FirebaseAuth.instance.currentUser!.uid !=
-              context.read(selectedFacility).state.docId) {
+          } else if (FirebaseAuth.instance.currentUser!.uid != ref.read(selectedFacility).docId) {
             return Center(
               child: Text('Вы не относитесь к этому заведению!'),
             );
@@ -168,14 +164,14 @@ class StaffHome extends ConsumerWidget {
               itemCount: services.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () => context.read(selectedService).state = services[index],
+                  onTap: () => ref.read(selectedService.notifier).state = services[index],
                   child: Card(
                     child: ListTile(
                       leading: Icon(
                         Icons.sell,
                         color: Colors.black,
                       ),
-                      trailing: context.read(selectedService).state.docId == services[index].docId
+                      trailing: ref.read(selectedService).docId == services[index].docId
                           ? Icon(Icons.check)
                           : null,
                       title: Text(
@@ -194,9 +190,9 @@ class StaffHome extends ConsumerWidget {
     );
   }
 
-  displayBooking(BuildContext context) {
+  displayBooking(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
-        future: checkThisFacility(context),
+        future: checkThisFacility(context, ref),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -205,7 +201,7 @@ class StaffHome extends ConsumerWidget {
           } else {
             var result = snapshot.data as bool;
             if (result) {
-              return displaySlot(context);
+              return displaySlot(context, ref);
             } else {
               return Center(
                 child: Text('Вы не относитесь к этому заведению!'),
@@ -215,8 +211,8 @@ class StaffHome extends ConsumerWidget {
         });
   }
 
-  displaySlot(BuildContext context) {
-    var now = context.read(selectedDate).state;
+  displaySlot(BuildContext context, WidgetRef ref) {
+    var now = ref.read(selectedDate);
     return Column(
       children: [
         Container(
@@ -255,7 +251,7 @@ class StaffHome extends ConsumerWidget {
                       showTitleActions: true,
                       minTime: DateTime.now(),
                       maxTime: now.add(Duration(days: 31)),
-                      onConfirm: (date) => context.read(selectedDate).state = date);
+                      onConfirm: (date) => ref.read(selectedDate.notifier).state = date);
                 },
                 child: Padding(
                   padding: EdgeInsets.all(8),
@@ -273,7 +269,7 @@ class StaffHome extends ConsumerWidget {
         ),
         Expanded(
             child: FutureBuilder(
-          future: getMaxAvailiableTimeSlot(context.read(selectedDate).state),
+          future: getMaxAvailiableTimeSlot(ref.read(selectedDate)),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
@@ -283,7 +279,7 @@ class StaffHome extends ConsumerWidget {
               var maxTimeSlot = snapshot.data as int;
               return FutureBuilder(
                 future: getBookingSlot(
-                    context, DateFormat('dd_MM_yyyy').format(context.read(selectedDate).state)),
+                    context, DateFormat('dd_MM_yyyy').format(ref.read(selectedDate)), ref),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -297,13 +293,13 @@ class StaffHome extends ConsumerWidget {
                       itemBuilder: (context, index) => GestureDetector(
                         onTap: (!listTimeSlot.contains(index))
                             ? null
-                            : () => processDoneServices(context, index),
+                            : () => processDoneServices(context, index, ref),
                         child: Card(
                           color: listTimeSlot.contains(index)
                               ? Colors.white10
                               : (maxTimeSlot > index)
                                   ? Colors.white60
-                                  : context.read(selectedTime).state == TIME_SLOT.elementAt(index)
+                                  : ref.read(selectedTime) == TIME_SLOT.elementAt(index)
                                       ? Colors.white54
                                       : Colors.white,
                           child: GridTile(
@@ -321,7 +317,7 @@ class StaffHome extends ConsumerWidget {
                                 ],
                               ),
                             ),
-                            header: context.read(selectedTime).state == TIME_SLOT.elementAt(index)
+                            header: ref.read(selectedTime) == TIME_SLOT.elementAt(index)
                                 ? Icon(Icons.check)
                                 : null,
                           ),
@@ -338,19 +334,19 @@ class StaffHome extends ConsumerWidget {
     );
   }
 
-  processDoneServices(BuildContext context, int index) {
-    context.read(selectedTimeSlot).state = index;
+  processDoneServices(BuildContext context, int index, WidgetRef ref) {
+    ref.read(selectedTimeSlot.notifier).state = index;
     Navigator.of(context).pushNamed('/doneServices');
   }
 
   @override
-  Widget build(BuildContext context, watch) {
-    var currentStaffStep = watch(staffStep).state;
-    var categoryWatch = watch(selectedCategory).state;
-    var facilityWatch = watch(selectedFacility).state;
-    var serviceWatch = watch(selectedService).state;
-    var dateWatch = watch(selectedDate).state;
-    var selectedTimeWatch = watch(selectedTime).state;
+  Widget build(BuildContext context, ref) {
+    var currentStaffStep = ref.watch(staffStep);
+    var categoryWatch = ref.watch(selectedCategory);
+    var facilityWatch = ref.watch(selectedFacility);
+    var serviceWatch = ref.watch(selectedService);
+    var dateWatch = ref.watch(selectedDate);
+    var selectedTimeWatch = ref.watch(selectedTime);
     return SafeArea(
       child: Scaffold(
           resizeToAvoidBottomInset: true,
@@ -370,8 +366,8 @@ class StaffHome extends ConsumerWidget {
               IconButton(
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
-                    context.read(userLogged).state = null;
-                    context.read(forceReload).state = false;
+                    ref.read(userLogged.notifier).state = null;
+                    ref.read(forceReload.notifier).state = false;
                     Navigator.of(context).pushNamed('/');
                   },
                   icon: Icon(Icons.logout))
@@ -382,13 +378,13 @@ class StaffHome extends ConsumerWidget {
             children: [
               Expanded(
                 child: currentStaffStep == 1
-                    ? displayCategory()
+                    ? displayCategory(ref)
                     : currentStaffStep == 2
-                        ? displayFacility(categoryWatch.name)
+                        ? displayFacility(categoryWatch.name, ref)
                         : currentStaffStep == 3
-                            ? displayService(facilityWatch)
+                            ? displayService(facilityWatch, ref)
                             : currentStaffStep == 4
-                                ? displayBooking(context)
+                                ? displayBooking(context, ref)
                                 : Container(),
                 flex: 10,
               ),
@@ -404,7 +400,7 @@ class StaffHome extends ConsumerWidget {
                           child: ElevatedButton(
                             onPressed: currentStaffStep == 1
                                 ? null
-                                : () => context.read(staffStep).state--,
+                                : () => ref.read(staffStep.notifier).state--,
                             child: Text('Назад'),
                           ),
                         ),
@@ -413,15 +409,15 @@ class StaffHome extends ConsumerWidget {
                         ),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: (currentStaffStep == 1 &&
-                                        context.read(selectedCategory).state.name == '') ||
-                                    (currentStaffStep == 2 &&
-                                        context.read(selectedFacility).state.docId == '') ||
-                                    (currentStaffStep == 3 &&
-                                        context.read(selectedService).state.docId == '') ||
-                                    currentStaffStep == 4
-                                ? null
-                                : () => context.read(staffStep).state++,
+                            onPressed:
+                                (currentStaffStep == 1 && ref.read(selectedCategory).name == '') ||
+                                        (currentStaffStep == 2 &&
+                                            ref.read(selectedFacility).docId == '') ||
+                                        (currentStaffStep == 3 &&
+                                            ref.read(selectedService).docId == '') ||
+                                        currentStaffStep == 4
+                                    ? null
+                                    : () => ref.read(staffStep.notifier).state++,
                             child: Text('Далее'),
                           ),
                         ),

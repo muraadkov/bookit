@@ -11,9 +11,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'user_history_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
-  displayProfilePage(BuildContext context) {
+  displayProfilePage(BuildContext context, WidgetRef ref) {
     return FutureBuilder(
-      future: getUserProfiles(context, FirebaseAuth.instance.currentUser!.phoneNumber!),
+      future: getUserProfiles(context, FirebaseAuth.instance.currentUser!.phoneNumber!, ref),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -63,8 +63,8 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     onPressed: () {
                       FirebaseAuth.instance.signOut();
-                      context.read(userLogged).state = null;
-                      context.read(forceReload).state = false;
+                      ref.read(userLogged.notifier).state = null;
+                      ref.read(forceReload.notifier).state = false;
                       Navigator.of(context).pushNamed('/');
                     })
               ],
@@ -108,13 +108,13 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, watch) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // TODO: implement build
     int _selectedIndex = 3;
     return Scaffold(
       backgroundColor: Colors.white,
       body: FutureBuilder(
-          future: getUserProfiles(context, '+77713346401'),
+          future: getUserProfiles(context, '+71111111111', ref),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Center(
@@ -155,8 +155,8 @@ class ProfileScreen extends ConsumerWidget {
                       child: InkWell(
                         onTap: () {
                           FirebaseAuth.instance.signOut();
-                          context.read(userLogged).state = null;
-                          context.read(forceReload).state = false;
+                          ref.read(userLogged.notifier).state = null;
+                          ref.read(forceReload.notifier).state = false;
                           Navigator.of(context).pushNamed('/');
                         },
                         child: Center(

@@ -7,18 +7,16 @@ import 'package:bookit/screens/profile_screen.dart';
 import 'package:bookit/screens/user_history_screen.dart';
 import 'package:bookit/state/state_management.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../cloud_firestore/user_ref.dart';
 import '../model/user_model.dart';
 
-displayProfilePage(BuildContext context) {
+displayProfilePage(BuildContext context, WidgetRef ref) {
   return FutureBuilder(
-    future: getUserProfiles(context, FirebaseAuth.instance.currentUser!.phoneNumber!),
+    future: getUserProfiles(context, FirebaseAuth.instance.currentUser!.phoneNumber!, ref),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return Center(
@@ -32,19 +30,20 @@ displayProfilePage(BuildContext context) {
           child: Row(
             children: [
               CircleAvatar(
+                maxRadius: 30,
+                backgroundColor: Colors.black,
                 child: Icon(
                   Icons.person,
                   color: Colors.white,
                   size: 30,
                 ),
-                maxRadius: 30,
-                backgroundColor: Colors.black,
               ),
               SizedBox(
                 width: 30,
               ),
               Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${userModel.name}',
@@ -58,7 +57,6 @@ displayProfilePage(BuildContext context) {
                           fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ],
-                  crossAxisAlignment: CrossAxisAlignment.start,
                 ),
               ),
               IconButton(
@@ -68,8 +66,8 @@ displayProfilePage(BuildContext context) {
                   ),
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
-                    context.read(userLogged).state = null;
-                    context.read(forceReload).state = false;
+                    ref.read(userLogged.notifier).state = null;
+                    ref.read(forceReload.notifier).state = false;
                     Navigator.of(context).pushNamed('/');
                   })
             ],

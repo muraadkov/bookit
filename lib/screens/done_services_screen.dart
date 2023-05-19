@@ -4,9 +4,7 @@ import 'package:bookit/model/services_model.dart';
 import 'package:bookit/state/state_management.dart';
 import 'package:chips_choice_null_safety/chips_choice_null_safety.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -17,9 +15,9 @@ import '../utils/utils.dart';
 class DoneService extends ConsumerWidget {
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
 
-  finishService(BuildContext context) {
+  finishService(BuildContext context, WidgetRef ref) {
     var batch = FirebaseFirestore.instance.batch();
-    var serviceBook = context.read(selectedBooking).state;
+    var serviceBook = ref.read(selectedBooking);
 
     var userBook = FirebaseFirestore.instance
         .collection('User')
@@ -30,10 +28,9 @@ class DoneService extends ConsumerWidget {
 
     Map<String, dynamic> updateDone = new Map();
     updateDone['done'] = true;
-    updateDone['services'] = convertServices(context.read(selectedServices).state);
-    updateDone['totalPrice'] = context
+    updateDone['services'] = convertServices(ref.read(selectedServices));
+    updateDone['totalPrice'] = ref
         .read(selectedServices)
-        .state
         .map((e) => e.price)
         .fold(0, (previousValue, element) => double.parse(previousValue.toString()) + element);
 
@@ -51,8 +48,8 @@ class DoneService extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, watch) {
-    context.read(selectedServices).state.clear();
+  Widget build(BuildContext context, ref) {
+    ref.read(selectedServices).clear();
     return SafeArea(
       child: Scaffold(
           key: scaffoldKey,
@@ -67,7 +64,7 @@ class DoneService extends ConsumerWidget {
               Padding(
                 padding: EdgeInsets.all(8),
                 child: FutureBuilder(
-                  future: getDetailOfBooking(context, context.read(selectedTimeSlot).state),
+                  future: getDetailOfBooking(context, ref.read(selectedTimeSlot), ref),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(
@@ -116,8 +113,8 @@ class DoneService extends ConsumerWidget {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Consumer(builder: (context, watch, _) {
-                                    var servicesSelected = watch(selectedServices).state;
+                                  Consumer(builder: (context, ref, _) {
+                                    var servicesSelected = ref.watch(selectedServices);
                                     var totalPrice = servicesSelected
                                         .map((item) => item.price)
                                         .fold(
@@ -125,11 +122,11 @@ class DoneService extends ConsumerWidget {
                                             (value, element) =>
                                                 double.parse(value.toString()) + element);
                                     return Text(
-                                      'Цена: ${context.read(selectedBooking).state.totalPrice == 0 ? totalPrice : context.read(selectedBooking).state.totalPrice}',
+                                      'Цена: ${ref.read(selectedBooking).totalPrice == 0 ? totalPrice : ref.read(selectedBooking).totalPrice}',
                                       style: GoogleFonts.robotoMono(fontSize: 22),
                                     );
                                   }),
-                                  context.read(selectedBooking).state.done
+                                  ref.read(selectedBooking).done
                                       ? Chip(
                                           label: Text('Завершено'),
                                         )
@@ -148,7 +145,7 @@ class DoneService extends ConsumerWidget {
                 child: Padding(
                   padding: EdgeInsets.all(8),
                   child: FutureBuilder(
-                      future: getServices(context),
+                      future: getServices(context, ref),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return Center(
@@ -156,8 +153,8 @@ class DoneService extends ConsumerWidget {
                           );
                         } else {
                           var services = snapshot.data as List<ServicesModel>;
-                          return Consumer(builder: (context, watch, _) {
-                            var servicesWatch = watch(selectedServices).state;
+                          return Consumer(builder: (context, ref, _) {
+                            var servicesWatch = ref.watch(selectedServices);
                             return SingleChildScrollView(
                                 child: Column(
                               children: [
@@ -166,7 +163,8 @@ class DoneService extends ConsumerWidget {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   wrapped: true,
                                   value: servicesWatch,
-                                  onChanged: (val) => context.read(selectedServices).state = val,
+                                  onChanged: (val) =>
+                                      ref.read(selectedServices.notifier).state = val,
                                   choiceStyle: C2ChoiceStyle(elevation: 8, color: Colors.blue),
                                   choiceItems: C2Choice.listFrom<ServicesModel, ServicesModel>(
                                       source: services,
@@ -176,10 +174,10 @@ class DoneService extends ConsumerWidget {
                                 Container(
                                   width: MediaQuery.of(context).size.width,
                                   child: ElevatedButton(
-                                    onPressed: context.read(selectedBooking).state.done
+                                    onPressed: ref.read(selectedBooking).done
                                         ? null
                                         : servicesWatch.length > 0
-                                            ? () => finishService(context)
+                                            ? () => finishService(context, ref)
                                             : null,
                                     child: Text(
                                       'Завершить',

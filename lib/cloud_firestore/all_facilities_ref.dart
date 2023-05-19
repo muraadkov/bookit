@@ -101,11 +101,11 @@ Future<List<int>> getTimeSlotOfService(ServiceModel serviceModel, String date) a
   return result;
 }
 
-Future<bool> checkThisFacility(BuildContext context) async {
+Future<bool> checkThisFacility(BuildContext context, WidgetRef ref) async {
   //AllFacilities/Бильярд/Branch/5GmHdXmUDZro22lh7B5q/Service/G6Iu9VryvNmTRyglcv3v
   DocumentSnapshot facilitySnapshot = await FirebaseFirestore.instance
       .collection('AllFacilities')
-      .doc('${context.read(selectedCategory).state.name}')
+      .doc('${ref.read(selectedCategory).name}')
       .collection('Branch')
       .doc(FirebaseAuth.instance.currentUser!.uid)
       .get();
@@ -114,14 +114,14 @@ Future<bool> checkThisFacility(BuildContext context) async {
   return facilitySnapshot.exists;
 }
 
-Future<List<int>> getBookingSlot(BuildContext context, String date) async {
+Future<List<int>> getBookingSlot(BuildContext context, String date, WidgetRef ref) async {
   var facilityDocument = FirebaseFirestore.instance
       .collection('AllFacilities')
-      .doc('${context.read(selectedCategory).state.name}')
+      .doc('${ref.read(selectedCategory).name}')
       .collection('Branch')
-      .doc('${context.read(selectedFacility).state.docId}')
+      .doc('${ref.read(selectedFacility).docId}')
       .collection('Service')
-      .doc('${context.read(selectedService).state.docId}');
+      .doc('${ref.read(selectedService).docId}');
   List<int> result = new List<int>.empty(growable: true);
   var bookingRef = facilityDocument.collection(date);
   QuerySnapshot snapshot = await bookingRef.get();
@@ -131,21 +131,21 @@ Future<List<int>> getBookingSlot(BuildContext context, String date) async {
   return result;
 }
 
-Future<BookingModel> getDetailOfBooking(BuildContext context, int timeSlot) async {
+Future<BookingModel> getDetailOfBooking(BuildContext context, int timeSlot, WidgetRef ref) async {
   CollectionReference userRef = FirebaseFirestore.instance
       .collection('AllFacilities')
-      .doc(context.read(selectedCategory).state.name)
+      .doc(ref.read(selectedCategory).name)
       .collection('Branch')
-      .doc(context.read(selectedFacility).state.docId)
+      .doc(ref.read(selectedFacility).docId)
       .collection('Service')
-      .doc('${context.read(selectedService).state.docId}')
-      .collection(DateFormat('dd_MM_yyyy').format(context.read(selectedDate).state));
+      .doc('${ref.read(selectedService).docId}')
+      .collection(DateFormat('dd_MM_yyyy').format(ref.read(selectedDate)));
   DocumentSnapshot snapshot = await userRef.doc(timeSlot.toString()).get();
   if (snapshot.exists) {
     var bookingModel = BookingModel.fromJson(json.decode(json.encode(snapshot.data())));
     bookingModel.docId = snapshot.id;
     bookingModel.reference = snapshot.reference;
-    context.read(selectedBooking).state = bookingModel;
+    ref.read(selectedBooking.notifier).state = bookingModel;
     return bookingModel;
   } else {
     return BookingModel(
